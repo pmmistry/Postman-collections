@@ -1,0 +1,1049 @@
+{
+	"info": {
+		"_postman_id": "0c9aa1a7-b186-42ec-94ee-9619e3d42a70",
+		"name": "Twitter Hashtag Search",
+		"description": "## About\n\nThis is a parent folder for the Postman Collection created to search for hashtagged tweets and post them to Slack.\n\nBefore this collection will work as expected, we need to input some important authorization credentials.\n\n### READ THE BLOG POSTS\n\n*   [Part I: How to Use the Twitter API to Build a Hashtag Search Bot](https://blog.postman.com/how-to-use-twitter-api-create-hashtag-search-bot/)\n*   [Part II: The Twitter API: Confessions of a User](https://blog.postman.com/twitter-api-confessions-of-a-user/)\n    \n\n### CHECK OUT THE LIVESTREAM\n\n*   [Finding the hidden gems in the Twitter API](https://youtu.be/ySbLo13Fk-c)\n    \n\n#### Quickstart\n\nIf you want to get started immediately without reading through the detailed documentation, here are the quick and dirty steps:\n\n1.  Fork this collection into your own workspace.\n2.  Fork the [`Twitter Hashtag Environment`](https://www.postman.com/postman/workspace/published-postman-templates/environment/13455110-f36b644a-a69f-4768-ba20-763c806e0d9d) environment into your own workspace.\n3.  Enter the missing auth credentials in the environment (Twitter bearer token, Postman API key, and Slack webhook URL).\n4.  Change the `query` param in the \"Search for Hashtag\" request.\n5.  Create a Monitor for the collection.\n6.  Check out the Slack messages!\n    \n\n## Detailed Steps\n\n#### Fork this workspace\n\nIf you want to work with this collection yourself, click the \"Fork\" button on the top right section of Postman and select your own workspace as the destination for the fork. This will allow you to customize the requests and run through the collection yourself.\n\n#### Fork the environment\n\nTo save some time of manually creating an environment and copying/pasting variable names, you can simply fork the environment directly from this workspace into your own. Similar to the steps above for forking a workspace, follow the same steps for the environment. Click the environments section in the top right, select \"Twitter Hashtag Environment\", then click \"Fork\".\n\nYou can also directly go that environment (here)\\[[https://www.postman.com/postman/workspace/published-postman-templates/environment/13455110-f36b644a-a69f-4768-ba20-763c806e0d9d\\]](https://www.postman.com/postman/workspace/published-postman-templates/environment/13455110-f36b644a-a69f-4768-ba20-763c806e0d9d]).\n\n#### Twitter requirements\n\nYou will need to obtain a bearer token from Twitter. Go to your [developer dashboard](https://developer.twitter.com/en/portal/projects-and-apps), and find the Projects & Apps section. If you haven't created a new App/Project, you must do that first. Once that is complete, copy the bearer token value and paste it into your environment variable.\n\n#### Postman requirements\n\nNext you'll need a valid [API Key](https://postman.postman.co/workspace/Twitter-Workspace~a2ae0092-a8f5-412f-9c41-b009fda1e633/collection/12959542-c8142d51-e97c-46b6-bd77-52bb66712c9a?ctx=documentation#authentication) to send requests to the API endpoints. You can get your key from the [integrations dashboard](https://go.postman.co/settings/me/api-keys).\n\nThe API Key is required to be sent as part of every request to the Postman API, in the form of an X-Api-Key request header.\n\nOnce you find your Postman API Key, save the value as the environment variable `postman_api_key`.\n\n#### Slack requirements\n\nIn order to send the messages to Slack, you need to have a url to send a POST request to. You can do this by following the instructions on [Getting started with Incoming Webhooks](https://api.slack.com/messaging/webhooks) Step 3 & 4 of those instructions will explain how/where you get the required URL.\n\nOnce you have the webhook URL, copy it and paste it into the environment variable `slack_webhook_url`.\n\n#### Automating the workflow\n\nTo have this collection run at set intervals, you'll need to create a [monitor](https://learning.postman.com/docs/designing-and-developing-your-api/monitoring-your-api/intro-monitors/) by clicking the \"Monitors\" icon on the left side of the screen. Make sure to select the correct Environment for your monitor. The workflow when automated looks likes this:  \n\n![](https://i.imgur.com/QP7j7te.png)\n\n#### Credit\n\nThe code in the Pre-request Script page is duplicated from [Twitter's Public Workspace](https://www.postman.com/twitter/workspace/twitter-s-public-workspace/overview).. It lays the foundation for the requirements necessary for accessing the Twitter API v2.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20042574"
+	},
+	"item": [
+		{
+			"name": "Galaxy Search",
+			"item": [
+				{
+					"name": "Search for Hashtag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"var data = pm.response.json().data;",
+									"var users = pm.response.json().includes.users;",
+									"var tweetsToPost = [];",
+									"",
+									"if(data){",
+									"    data.reverse();",
+									"    console.log(\"data=\", data);",
+									"    pm.environment.set(\"highest_tweet_id\", data[data.length-1].id);",
+									"    console.log(\"highest_tweet_id=\", pm.environment.get(\"highest_tweet_id\"));",
+									"    let allUserIds = [];",
+									"    let tweetArray = [];",
+									"",
+									"    for(var i=0; i<data.length; i++){",
+									"        for(var j=0; j<users.length; j++){",
+									"            if(data[i].author_id === users[j].id){",
+									"                data[i].name = users[j].name;",
+									"                data[i].username = users[j].username;",
+									"                data[i].created_date = moment(data[i].created_at).subtract(8,'hours').format(\"dddd, MMMM Do YYYY, h:mm:ss a\");",
+									"            }",
+									"        }",
+									"        var user = data[i];",
+									"        tweetsToPost.push(`\\n:rocket::rotating_light:*New #postmangalaxy Tweet!*:rotating_light::rocket:\\nPosted by *${user.name}* _(@${user.username})_ \\n <https://twitter.com/${user.username}/status/${user.tweet_id}|https://twitter.com/${user.username}/status/${user.tweet_id}>\\n${user.text}\\nPosted at ${user.created_date} from ${user.source}\\n\\n`)",
+									"    }",
+									"",
+									"    pm.environment.set(\"tweets_to_post\", tweetsToPost);",
+									"} else {",
+									"    postman.setNextRequest(null);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let highestTweetID = pm.environment.get(\"highest_tweet_id\");",
+									"",
+									"if(!highestTweetID){",
+									"    pm.request.removeQueryParams(\"since_id\");",
+									"    console.log(\"removing since_id parameter from query since there is no highest_tweet_id to base the search off of.\")",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://api.twitter.com/2/tweets/search/recent?query=%23postmangalaxy&since_id={{highest_tweet_id}}&max_results=20&tweet.fields=author_id,conversation_id,created_at,geo,id,lang,source,text&user.fields=created_at,description,entities,id,location,name,url,username&expansions=author_id",
+							"protocol": "https",
+							"host": [
+								"api",
+								"twitter",
+								"com"
+							],
+							"path": [
+								"2",
+								"tweets",
+								"search",
+								"recent"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "%23postmangalaxy"
+								},
+								{
+									"key": "since_id",
+									"value": "{{highest_tweet_id}}",
+									"description": "Returns results with a Tweet ID greater than (that is, more recent than) the specified ID. The ID specified is exclusive and responses will not include it."
+								},
+								{
+									"key": "max_results",
+									"value": "20",
+									"description": "The maximum number of search results to be returned by a request. A number between 10 and the system limit (currently 100). By default, a request response will return 10 results."
+								},
+								{
+									"key": "tweet.fields",
+									"value": "author_id,conversation_id,created_at,geo,id,lang,source,text",
+									"description": "Comma-separated list of fields for the Tweet object.\n\nAllowed values:\nattachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,non_public_metrics,organic_metrics,possibly_sensitive,promoted_metrics,public_metrics,referenced_tweets,reply_settings,source,text,withheld\n\nDefault values:\nid,text\n\nOAuth1.0a User Context authorization required if any of the following fields are included in the request:\nnon_public_metrics,organic_metrics,promoted_metrics"
+								},
+								{
+									"key": "user.fields",
+									"value": "created_at,description,entities,id,location,name,url,username",
+									"description": "Comma-separated list of fields for the user object. Expansion required.\n\nAllowed values:\ncreated_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld\n\nDefault values:\nid,name,username"
+								},
+								{
+									"key": "expansions",
+									"value": "author_id",
+									"description": "Comma-separated list of fields to expand. Expansions enable requests to expand an ID into a full object in the includes response object.\n\nAllowed values: attachments.poll_ids,attachments.media_keys,author_id,geo.place_id,in_reply_to_user_id,referenced_tweets.id,entities.mentions.username,referenced_tweets.id.author_id\n\nDefault values: none"
+								},
+								{
+									"key": "start_time",
+									"value": "",
+									"description": "The oldest UTC timestamp (from most recent 7 days) from which the Tweets will be provided. YYYY-MM-DDTHH:mm:ssZ (ISO 8601/RFC 3339).",
+									"disabled": true
+								},
+								{
+									"key": "end_time",
+									"value": "",
+									"description": "The newest, most recent UTC timestamp to which the Tweets will be provided. YYYY-MM-DDTHH:mm:ssZ (ISO 8601/RFC 3339).",
+									"disabled": true
+								},
+								{
+									"key": "until_id",
+									"value": "",
+									"description": "Returns results with a Tweet ID less than (that is, older than) the specified ID. The ID specified is exclusive and responses will not include it.",
+									"disabled": true
+								},
+								{
+									"key": "next_token",
+									"value": "",
+									"description": "This parameter is used to get the next 'page' of results. The value used with the parameter is pulled directly from the response provided by the API, and should not be modified.",
+									"disabled": true
+								},
+								{
+									"key": "media.fields",
+									"value": "",
+									"description": "Comma-separated list of fields for the media object. Expansion required.\n\nAllowed values:\nduration_ms,height,media_key,non_public_metrics,organic_metrics,preview_image_url,promoted_metrics,public_metrics,type,url,width\n\nDefault values:\nmedia_key,type\n\nOAuth1.0a User Context authorization required if any of the following fields are included in the request:\nnon_public_metrics,organic_metrics,promoted_metrics",
+									"disabled": true
+								},
+								{
+									"key": "place.fields",
+									"value": "country,geo,id,name,place_type",
+									"description": "Comma-separated list of fields for the place object. Expansion required.\n\nAllowed values:\ncontained_within,country,country_code,full_name,geo,id,name,place_type\n\nDefault values:\nid,full_name",
+									"disabled": true
+								},
+								{
+									"key": "poll.fields",
+									"value": "",
+									"description": "Comma-separated list of fields for the poll object. Expansion required.\n\nAllowed values:\nduration_minutes,end_datetime,id,options,voting_status\n\nDefault values:\nid, options",
+									"disabled": true
+								}
+							]
+						},
+						"description": "## About\n#### Overview\nThis request asks the Twitter API to return all the latest tweets that match a specific query string. \n\n#### Searching for Hashtags\nTwitter doesn't have a specific endpoint or clearly defined way to search for a hashtag, but the functionality is still present. A hashtag is essentially just the pound sign followed immediately by a string of text. Because we know the Unicode for the pound sign (%23), we can make our query `%23` + `hashtag_to_query`. For example, to find tweets with the hashtag **#PostmanGalaxy**, you can make the `query` param value equal to `%23PostmanGalaxy`. Queries are case-insensitive as well.\n\n#### The since_id parameter\nBecause the goal of this collection is to run over and over again and only find the newest tweets, we don't need to search ALL of Twitter if it runs every 5 minutes. We only want the new tweets since the collection last ran. Thankfully, for every single tweet, Twitter has an [ID that is derived from a timestamp](https://developer.twitter.com/en/docs/twitter-ids). We make use of this functionality to help narrow our search. By setting the `since_id` param equal to the last known `highest_tweet_id` value, we ensure that the search only happens for undiscovered new tweets.\n\n#### Expansions\nTwitter doesn't give you ALL of the info for any given tweet by default. You have to request child objects of the initial tweet object to get all information you want. This is done via [expansions](https://developer.twitter.com/en/docs/twitter-api/expansions). By default, the \"users\" expansion is turned on and asks for more info `author_id` which gives the information needed.\n\n\n#### Pre-request Script\nThe code in the Pre-request Script tab runs _before_ your request is sent. Here we check to see if we have the aforementioned `highest_tweet_id` saved as an environment variable. If it exists, nothing happens. If it does not exist, it may be because it's the first time running this collection and we haven't captured the earliest tweet yet. If this is the case, it does not make sense to include it as a query param, and thankfully Postman has a convenient method of [removing a parameter from the query](https://www.postmanlabs.com/postman-collection/Request.html#removeQueryParams).\n\n#### The Tests Tab\nThe code here runs _after_ the request is sent and the response has been received. Once the response is received, we reverse it, and then do a series of nested for loops to match up the info from the `data` object in the response with the `users` object in the response. This ensures that we now have the names and Twitter handles that correspond with each tweet. \nThe tweets are then put into a format that Slack will be able to receive."
+					},
+					"response": [
+						{
+							"name": "Search for Hashtag",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://api.twitter.com/2/tweets/search/recent?query=%23postmangalaxy&since_id={{highest_tweet_id}}&max_results=20&tweet.fields=author_id,conversation_id,created_at,geo,id,lang,source,text&user.fields=created_at,description,entities,id,location,name,url,username&expansions=author_id",
+									"protocol": "https",
+									"host": [
+										"api",
+										"twitter",
+										"com"
+									],
+									"path": [
+										"2",
+										"tweets",
+										"search",
+										"recent"
+									],
+									"query": [
+										{
+											"key": "query",
+											"value": "%23postmangalaxy"
+										},
+										{
+											"key": "since_id",
+											"value": "{{highest_tweet_id}}",
+											"description": "Returns results with a Tweet ID greater than (that is, more recent than) the specified ID. The ID specified is exclusive and responses will not include it."
+										},
+										{
+											"key": "max_results",
+											"value": "20",
+											"description": "The maximum number of search results to be returned by a request. A number between 10 and the system limit (currently 100). By default, a request response will return 10 results."
+										},
+										{
+											"key": "tweet.fields",
+											"value": "author_id,conversation_id,created_at,geo,id,lang,source,text",
+											"description": "Comma-separated list of fields for the Tweet object.\n\nAllowed values:\nattachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,non_public_metrics,organic_metrics,possibly_sensitive,promoted_metrics,public_metrics,referenced_tweets,reply_settings,source,text,withheld\n\nDefault values:\nid,text\n\nOAuth1.0a User Context authorization required if any of the following fields are included in the request:\nnon_public_metrics,organic_metrics,promoted_metrics"
+										},
+										{
+											"key": "user.fields",
+											"value": "created_at,description,entities,id,location,name,url,username",
+											"description": "Comma-separated list of fields for the user object. Expansion required.\n\nAllowed values:\ncreated_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld\n\nDefault values:\nid,name,username"
+										},
+										{
+											"key": "expansions",
+											"value": "author_id",
+											"description": "Comma-separated list of fields to expand. Expansions enable requests to expand an ID into a full object in the includes response object.\n\nAllowed values: attachments.poll_ids,attachments.media_keys,author_id,geo.place_id,in_reply_to_user_id,referenced_tweets.id,entities.mentions.username,referenced_tweets.id.author_id\n\nDefault values: none"
+										},
+										{
+											"key": "start_time",
+											"value": "",
+											"description": "The oldest UTC timestamp (from most recent 7 days) from which the Tweets will be provided. YYYY-MM-DDTHH:mm:ssZ (ISO 8601/RFC 3339).",
+											"disabled": true
+										},
+										{
+											"key": "end_time",
+											"value": "",
+											"description": "The newest, most recent UTC timestamp to which the Tweets will be provided. YYYY-MM-DDTHH:mm:ssZ (ISO 8601/RFC 3339).",
+											"disabled": true
+										},
+										{
+											"key": "until_id",
+											"value": "",
+											"description": "Returns results with a Tweet ID less than (that is, older than) the specified ID. The ID specified is exclusive and responses will not include it.",
+											"disabled": true
+										},
+										{
+											"key": "next_token",
+											"value": "",
+											"description": "This parameter is used to get the next 'page' of results. The value used with the parameter is pulled directly from the response provided by the API, and should not be modified.",
+											"disabled": true
+										},
+										{
+											"key": "media.fields",
+											"value": "",
+											"description": "Comma-separated list of fields for the media object. Expansion required.\n\nAllowed values:\nduration_ms,height,media_key,non_public_metrics,organic_metrics,preview_image_url,promoted_metrics,public_metrics,type,url,width\n\nDefault values:\nmedia_key,type\n\nOAuth1.0a User Context authorization required if any of the following fields are included in the request:\nnon_public_metrics,organic_metrics,promoted_metrics",
+											"disabled": true
+										},
+										{
+											"key": "place.fields",
+											"value": "country,geo,id,name,place_type",
+											"description": "Comma-separated list of fields for the place object. Expansion required.\n\nAllowed values:\ncontained_within,country,country_code,full_name,geo,id,name,place_type\n\nDefault values:\nid,full_name",
+											"disabled": true
+										},
+										{
+											"key": "poll.fields",
+											"value": "",
+											"description": "Comma-separated list of fields for the poll object. Expansion required.\n\nAllowed values:\nduration_minutes,end_datetime,id,options,voting_status\n\nDefault values:\nid, options",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "cache-control",
+									"value": "no-cache, no-store, max-age=0"
+								},
+								{
+									"key": "content-disposition",
+									"value": "attachment; filename=json.json"
+								},
+								{
+									"key": "content-encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "content-length",
+									"value": "454"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "date",
+									"value": "Thu, 25 Feb 2021 22:51:49 GMT"
+								},
+								{
+									"key": "server",
+									"value": "tsa_b"
+								},
+								{
+									"key": "strict-transport-security",
+									"value": "max-age=631138519"
+								},
+								{
+									"key": "x-access-level",
+									"value": "read"
+								},
+								{
+									"key": "x-connection-hash",
+									"value": "56d5937a85f0902d6a63806674d70c1e"
+								},
+								{
+									"key": "x-content-type-options",
+									"value": "nosniff"
+								},
+								{
+									"key": "x-frame-options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "x-rate-limit-limit",
+									"value": "450"
+								},
+								{
+									"key": "x-rate-limit-remaining",
+									"value": "446"
+								},
+								{
+									"key": "x-rate-limit-reset",
+									"value": "1614293756"
+								},
+								{
+									"key": "x-response-time",
+									"value": "74"
+								},
+								{
+									"key": "x-xss-protection",
+									"value": "0"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"data\": [\n        {\n            \"conversation_id\": \"1376636032003809299\",\n            \"author_id\": \"237293113\",\n            \"created_at\": \"2021-03-29T20:43:01.000Z\",\n            \"text\": \"RT @CircleCI: At @getpostman's recent #PostmanGalaxy, our Sr. Developer Advocate @punkdata participated in a panel on #DevOps, testing, and…\",\n            \"id\": \"1376636032003809299\",\n            \"source\": \"Buffer\",\n            \"lang\": \"en\"\n        }\n    ],\n    \"includes\": {\n        \"users\": [\n            {\n                \"description\": \"#BLM \\nI lead DevRel & Community at @circleci. Co-creator of #DevOpsPartyGames. Opinions are of course mine. Could be yours too. Or not. ¯\\\\(°_o)/¯\",\n                \"entities\": {\n                    \"url\": {\n                        \"urls\": [\n                            {\n                                \"start\": 0,\n                                \"end\": 23,\n                                \"url\": \"https://t.co/qf8fMb0Stm\",\n                                \"expanded_url\": \"http://jmeiss.me\",\n                                \"display_url\": \"jmeiss.me\"\n                            }\n                        ]\n                    },\n                    \"description\": {\n                        \"hashtags\": [\n                            {\n                                \"start\": 0,\n                                \"end\": 4,\n                                \"tag\": \"BLM\"\n                            },\n                            {\n                                \"start\": 60,\n                                \"end\": 77,\n                                \"tag\": \"DevOpsPartyGames\"\n                            }\n                        ],\n                        \"mentions\": [\n                            {\n                                \"start\": 35,\n                                \"end\": 44,\n                                \"username\": \"circleci\"\n                            }\n                        ]\n                    }\n                },\n                \"name\": \"Jeremy, opener of worm cans\",\n                \"id\": \"237293113\",\n                \"location\": \"Kansas, USA\",\n                \"username\": \"IAmJerdog\",\n                \"created_at\": \"2011-01-12T14:28:38.000Z\",\n                \"url\": \"https://t.co/qf8fMb0Stm\"\n            }\n        ]\n    },\n    \"meta\": {\n        \"newest_id\": \"1376636032003809299\",\n        \"oldest_id\": \"1376636032003809299\",\n        \"result_count\": 1\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Post Tweets to Slack",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var tweetsToPost = pm.environment.get(\"tweets_to_post\");",
+									"",
+									"if(tweetsToPost.length > 0){",
+									"    pm.environment.set(\"current_tweet\", tweetsToPost.shift());",
+									"    pm.environment.set(\"tweets_to_post\", tweetsToPost);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var tweetsToPost = pm.environment.get(\"tweets_to_post\");",
+									"",
+									"// postman.setNextRequest(null);",
+									"",
+									"if(tweetsToPost.length > 0) {",
+									"    postman.setNextRequest(\"Post Tweets to Slack\");",
+									"} else {",
+									"    postman.setNextRequest(\"Get Postman Environment UID\");",
+									"    console.log(\"no more tweets!\")",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"blocks\": [\n\t\t{\n\t\t\t\"type\": \"section\",\n\t\t\t\"text\": {\n\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\"text\": \"{{current_tweet}}\"\n\t\t\t}\n\t\t}\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{slack_webhook_url}}",
+							"host": [
+								"{{slack_webhook_url}}"
+							]
+						},
+						"description": "## About\n#### Overview\nThis request sends a single tweet to a Slack channel via a POST request/Slack webhook integration. There are 3 things that are essential for this request. Below we'll break down each component.\n\n#### Pre-request Script\nThe code in the Pre-request Script tab runs _before_ your request is sent. In this case, to know what tweets to send to Slack, we capture the data from the environment variable `tweets_to_post` and save it as a variable we can work with called `tweetsToPost`. This is the array containing all of the tweets for a specific hashtag. If there are elements in the array, we simultaneously remove the first element of the `tweetsToPost` array and set it as an environment variable called `current_tweet`, which is the stringified version of a single tweet to be sent in the body of the request.\n\n#### Body\nHere is the content that is sent over to Slack. Using the nifty [Block Kit Builder](https://app.slack.com/block-kit-builder/) tool provided by Slack, it's easy to format your message exactly how you'd like to see it in Slack. You can see that `current_tweet` is in the double curly braces to reference the variable named \"current_tweet\" that we defined in the Pre-request Script.\n\n#### Tests\nHere we again capture that newly updated `tweetsToPost` variable and make use of Postman's ability to [customize your workflow](https://learning.postman.com/docs/running-collections/building-workflows/). Because we want this request to run for every single tweet found, we use the `setNextRequest` method to determine which request should run next. If there are still tweets to post to Slack, we actually want to set the next request to the same request we just ran (\"Post Tweets to Slack\")! When all the tweets have been posted to Slack, we set the next request to \"Get Postman Environment UID\", which allows to store the highest tweet id."
+					},
+					"response": [
+						{
+							"name": "Post Tweets to Slack",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"blocks\": [\n\t\t{\n\t\t\t\"type\": \"section\",\n\t\t\t\"text\": {\n\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\"text\": \"{{current_tweet}}\"\n\t\t\t}\n\t\t}\n\t]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://hooks.slack.com/services/your_slack_webhook_url_info",
+									"protocol": "https",
+									"host": [
+										"hooks",
+										"slack",
+										"com"
+									],
+									"path": [
+										"services",
+										"your_slack_webhook_url_info"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "html",
+							"header": [
+								{
+									"key": "date",
+									"value": "Fri, 26 Feb 2021 01:00:24 GMT"
+								},
+								{
+									"key": "server",
+									"value": "Apache"
+								},
+								{
+									"key": "strict-transport-security",
+									"value": "max-age=31536000; includeSubDomains; preload"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "x-frame-options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "referrer-policy",
+									"value": "no-referrer"
+								},
+								{
+									"key": "x-slack-backend",
+									"value": "r"
+								},
+								{
+									"key": "vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "content-encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "content-length",
+									"value": "22"
+								},
+								{
+									"key": "content-type",
+									"value": "text/html"
+								},
+								{
+									"key": "x-envoy-upstream-service-time",
+									"value": "82"
+								},
+								{
+									"key": "x-backend",
+									"value": "main_normal main_canary_with_overflow main_control_with_overflow"
+								},
+								{
+									"key": "x-server",
+									"value": "slack-www-hhvm-main-iad-yq6e"
+								},
+								{
+									"key": "x-via",
+									"value": "envoy-www-iad-ipky, haproxy-edge-iad-m4ac"
+								},
+								{
+									"key": "x-slack-shared-secret-outcome",
+									"value": "shared-secret"
+								},
+								{
+									"key": "via",
+									"value": "envoy-www-iad-ipky"
+								}
+							],
+							"cookie": [],
+							"body": "ok"
+						}
+					]
+				},
+				{
+					"name": "Get Postman Environment UID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonResponse = pm.response.json();",
+									"var data = jsonResponse.environments;",
+									"var envName = pm.environment.get(\"environment_name\");",
+									"",
+									"// As long as you have entered the environment name in your environment variables, this will work.",
+									"for(var i =0; i<data.length; i++){",
+									"    if(data[i].name === envName){",
+									"        pm.environment.set(\"environment_uid\", data[i].uid);",
+									"    }",
+									"}",
+									"",
+									"// If this test fails, you either have the wrong environment name saved in your environment, or have not created your environment yet.",
+									"pm.test(\"Body matches string\", function () {",
+									"    pm.expect(pm.response.text()).to.include(pm.environment.get(\"environment_name\"));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "{{postman_api_key}}",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.getpostman.com/environments",
+							"protocol": "https",
+							"host": [
+								"api",
+								"getpostman",
+								"com"
+							],
+							"path": [
+								"environments"
+							]
+						},
+						"description": "## About\n#### Overview\nThis request serves as a helper function to capture the UID of the environment you're working in so that it can be updated in the next PUT request. It saves you having to find the UID yourself and copy/paste it in your environment. See \"Update Postman Environment\" request documentation for more info on why this flow is necessary."
+					},
+					"response": [
+						{
+							"name": "Get Postman Environment UID",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"environment\": {\n        \"name\": \"Twitter Copy Reset\",\n        \"values\": [\n              {\n                \"key\": \"consumer_key\",\n                \"value\": \"{{consumer_key}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"consumer_secret\",\n                \"value\": \"{{consumer_secret}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"appID\",\n                \"value\": \"{{appID}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"access_token\",\n                \"value\": \"{{access_token}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"token_secret\",\n                \"value\": \"{{token_secret}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"bearer_token\",\n                \"value\": \"{{bearer_token}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"highest_tweet_id\",\n                \"value\": \"{{highest_tweet_id}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"postman_api_key\",\n                \"value\": \"{{postman_api_key}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"environment_uid\",\n                \"value\": \"{{environment_uid}}\",\n                \"enabled\": true\n            }\n        ]\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.getpostman.com/environments",
+									"protocol": "https",
+									"host": [
+										"api",
+										"getpostman",
+										"com"
+									],
+									"path": [
+										"environments"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 26 Feb 2021 01:01:46 GMT"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"8f-A020QhWSocnX1SjasN3MuEr40Go\""
+								},
+								{
+									"key": "Server",
+									"value": "nginx"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "x-frame-options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "X-RateLimit-Limit",
+									"value": "60"
+								},
+								{
+									"key": "X-RateLimit-Remaining",
+									"value": "59"
+								},
+								{
+									"key": "X-RateLimit-Reset",
+									"value": "1614301366"
+								},
+								{
+									"key": "x-srv-span",
+									"value": "v=1;s=3cfdc0379418c059"
+								},
+								{
+									"key": "x-srv-trace",
+									"value": "v=1;t=bf1f3dca392e8e37"
+								},
+								{
+									"key": "Content-Length",
+									"value": "123"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"environments\": [\n        {\n            \"id\": \"<your-env-uid>\",\n            \"name\": \"Edamam (Recipe Search) Copy\",\n            \"createdAt\": \"2021-02-17T18:44:42.000Z\",\n            \"updatedAt\": \"2021-02-17T18:44:42.000Z\",\n            \"owner\": \"12403653\",\n            \"uid\": \"<your-env-uid>\",\n            \"isPublic\": true\n        },\n        {\n            \"id\": \"<your-env-uid>\",\n            \"name\": \"Edamam (Recipe Search)\",\n            \"createdAt\": \"2021-01-04T21:51:17.000Z\",\n            \"updatedAt\": \"2021-01-22T20:29:00.000Z\",\n            \"owner\": \"12403653\",\n            \"uid\": \"<your-env-uid>\",\n            \"isPublic\": true\n        }\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Postman Environment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "{{postman_api_key}}",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"environment\": {\n        \"name\": \"Twitter Hashtag Environment\",\n        \"values\": [\n            {\n                \"key\": \"bearer_token\",\n                \"value\": \"{{bearer_token}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"highest_tweet_id\",\n                \"value\": \"{{highest_tweet_id}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"postman_api_key\",\n                \"value\": \"{{postman_api_key}}\",\n                \"enabled\": true\n            },            {\n                \"key\": \"slack_webhook_url\",\n                \"value\": \"{{slack_webhook_url}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"environment_uid\",\n                \"value\": \"{{environment_uid}}\",\n                \"enabled\": true\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.getpostman.com/environments/{{environment_uid}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"getpostman",
+								"com"
+							],
+							"path": [
+								"environments",
+								"{{environment_uid}}"
+							]
+						},
+						"description": "## About\n#### Overview\nWe make use of the [Postman API](https://www.postman.com/postman/workspace/postman-public-workspace/documentation/12959542-c8142d51-e97c-46b6-bd77-52bb66712c9a#152d94ab-a94d-f5fc-c8db-73c61a56f4ce) to keep track of the ID number of the most recent tweet that has been posted to Slack. Because every tweet on Twitter has an [ID that is derived from a timestamp](https://developer.twitter.com/en/docs/twitter-ids), we can use that information to guide our next search for new tweets. Instead of searching ALL of Twitter for specific hashtagged tweets, you only need to search from the most recent ID you found.\n\n#### Why do we need this request?\nWe need to update the environment to make sure that `highest_tweet_id` is always tracked. Because this collection is designed to be run via a monitor, and global/environment variables are NOT persisted across collection runs using a monitor, using the Postman API to update the environment programmatically ensures that we safely track that ID number.\n\n#### Explaining the Body\nThe body tab shows you what is being sent to Postman. The only variable you **need** to update here is the `highest_tweet_id`, but you can see everything else being set as well."
+					},
+					"response": [
+						{
+							"name": "Update Postman Environment",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"environment\": {\n        \"name\": \"Twitter Copy Reset\",\n        \"values\": [\n              {\n                \"key\": \"consumer_key\",\n                \"value\": \"{{consumer_key}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"consumer_secret\",\n                \"value\": \"{{consumer_secret}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"appID\",\n                \"value\": \"{{appID}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"access_token\",\n                \"value\": \"{{access_token}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"token_secret\",\n                \"value\": \"{{token_secret}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"bearer_token\",\n                \"value\": \"{{bearer_token}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"highest_tweet_id\",\n                \"value\": \"{{highest_tweet_id}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"postman_api_key\",\n                \"value\": \"{{postman_api_key}}\",\n                \"enabled\": true\n            },\n            {\n                \"key\": \"environment_uid\",\n                \"value\": \"{{environment_uid}}\",\n                \"enabled\": true\n            }\n        ]\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.getpostman.com/environments/{{environment_uid}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"getpostman",
+										"com"
+									],
+									"path": [
+										"environments",
+										"{{environment_uid}}"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 26 Feb 2021 01:01:46 GMT"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"8f-A020QhWSocnX1SjasN3MuEr40Go\""
+								},
+								{
+									"key": "Server",
+									"value": "nginx"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "x-frame-options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "X-RateLimit-Limit",
+									"value": "60"
+								},
+								{
+									"key": "X-RateLimit-Remaining",
+									"value": "59"
+								},
+								{
+									"key": "X-RateLimit-Reset",
+									"value": "1614301366"
+								},
+								{
+									"key": "x-srv-span",
+									"value": "v=1;s=3cfdc0379418c059"
+								},
+								{
+									"key": "x-srv-trace",
+									"value": "v=1;t=bf1f3dca392e8e37"
+								},
+								{
+									"key": "Content-Length",
+									"value": "123"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"environment\": {\n        \"id\": \"your-environment-id\",\n        \"name\": \"Twitter Hashtag Environment\",\n        \"uid\": \"your-environment-uid\"\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "This folder contains the actual requests in sequential order that find the desired tweets and posts them to Slack. Some additional housekeeping and tracking are done in these requests as well to ensure only the newest tweets are collected in each run.  \nA brief summary of each request is as follows:\n\n**\"Search for Hashtag\"**  \n    Find the newest group of tweets for a given hashtag and match the users for those tweets\n    \n\n**\"Post Tweets to Slack\"**  \n    Send those tweets to Slack\n    \n\n**\"Get Postman Environment UID\"**  \n    Captures your environment UID programmatically\n    \n\n**\"Update Postman Environment\"**  \n    Store the ID of the most recent tweet so it persists in the environment"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{bearer_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"/*",
+					" * This pre-request script retrieves a Bearer token from the client credentials",
+					" * you provide in your environment file.",
+					" */",
+					"",
+					"// Retrieve env variables currently configured",
+					"const env_variables = pm.environment.toObject({",
+					"    excludeDisabled: true",
+					"});",
+					"",
+					"const addToken = () => {",
+					"    pm.sendRequest({",
+					"        url: 'https://api.twitter.com/oauth2/token',",
+					"        method: 'POST',",
+					"        auth: {",
+					"            type: 'basic',",
+					"            basic: {",
+					"                username: env_variables.consumer_key,",
+					"                password: env_variables.consumer_secret",
+					"            }",
+					"        },",
+					"        headers: {",
+					"            'Content-type': 'Content-type: application/x-www-form-urlencoded; charset: utf-8'",
+					"        },",
+					"        body: {",
+					"            mode: 'urlencoded',",
+					"            urlencoded: 'grant_type=client_credentials'",
+					"        }",
+					"    }, (err, res) => {",
+					"        if (err) {",
+					"            console.error('Error while generating a bearer token:', err);",
+					"        } else {",
+					"            const {access_token} = res.json();",
+					"            env_variables.bearer_token = access_token;",
+					"            pm.environment.set('bearer_token', access_token);",
+					"        }",
+					"    });",
+					"}",
+					"",
+					"const prepareBearerToken = () => {",
+					"    // Check if the required variables are set",
+					"    for (const key of ['consumer_key', 'consumer_secret']) {",
+					"        if (typeof env_variables[key] === 'undefined' || !env_variables[key]) {",
+					"            console.error('Missing required env variable:', key);",
+					"            return;",
+					"        }",
+					"    }",
+					"    ",
+					"    // Use an existing Bearer token, if already provided",
+					"    if (typeof env_variables.bearer_token === 'undefined' || env_variables.bearer_token === '' || env_variables.bearer_token === null || env_variables.bearer_token.toLowerCase() === 'your bearer token') {",
+					"        addToken();",
+					"    }",
+					"}",
+					"",
+					"prepareBearerToken();",
+					"",
+					"const prepareOAuthSignature = () => {",
+					"    /*",
+					"     * This is a Pre-request script for Postman client to remediate OAuth 1.0a issue",
+					"     * where certain request fails if the query parameter includes some specific characters.",
+					"     * https://tools.ietf.org/html/rfc3986#section-2.2 (rfc3986, gen-delims reserved characters)",
+					"     *",
+					"     * NOTE: This Pre-script is intended to use with \"GET\" request but might be able to",
+					"     *       work with other methods that have no request body.",
+					"     *       For \"POST\" request, there's another workaround.",
+					"     *       See: https://github.com/twitterdev/postman-twitter-ads-api/issues/2",
+					"     * ",
+					"     * In order to use this Pre-request script, you need to change your \"Authorization\" type to",
+					"     * \"No Auth\" only for the target request and do not apply to the top-level object.",
+					"     */",
+					"    ",
+					"    const sdk = require('postman-collection');",
+					"    ",
+					"    function toArray(object) {",
+					"        let array = [];",
+					"        Object.keys(object).forEach(key => {",
+					"            array.push(`${key}=${object[key]}`);",
+					"        });",
+					"        return array",
+					"    }",
+					"    ",
+					"    // fetch all env variables that are currently defined",
+					"    const env_variables = pm.environment.toObject({",
+					"        excludeDisabled: true",
+					"    });",
+					"    ",
+					"    const oauth_consumer_key = env_variables.consumer_key;",
+					"    const oauth_consumer_secret = env_variables.consumer_secret;",
+					"    const oauth_token = env_variables.access_token;",
+					"    const oauth_secret = env_variables.token_secret;",
+					"    const oauth_signing_key = `${oauth_consumer_secret}&${oauth_secret}`;",
+					"    ",
+					"    // create random oauth_nonce string",
+					"    const random_source = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';",
+					"    let oauth_nonce = '';",
+					"    for (let i = 0; i < 32; i++) {",
+					"        oauth_nonce += random_source.charAt(Math.floor(Math.random() * random_source.length));",
+					"    }",
+					"    ",
+					"    const oauth_parameter_string_object = {};",
+					"    oauth_parameter_string_object.oauth_consumer_key = oauth_consumer_key;",
+					"    oauth_parameter_string_object.oauth_token = oauth_token;",
+					"    const oauth_nonce_array = CryptoJS.enc.Utf8.parse(oauth_nonce);",
+					"    oauth_parameter_string_object.oauth_nonce = encodeURIComponent(CryptoJS.enc.Base64.stringify(oauth_nonce_array));",
+					"    oauth_parameter_string_object.oauth_signature_method = 'HMAC-SHA1';",
+					"    oauth_parameter_string_object.oauth_version = '1.0';",
+					"    oauth_parameter_string_object.oauth_timestamp = Math.round((new Date()).getTime() / 1000);",
+					"    ",
+					"    // for Authorization request header (copy object)",
+					"    const oauth_authorization_header_object = Object.assign({}, oauth_parameter_string_object);",
+					"    ",
+					"    // convert query string into object (+ encode)",
+					"    const url_query_string_object = {};",
+					"    ",
+					"    const url_query_string_object_array = sdk.QueryParam.parse(",
+					"        pm.request.url.getQueryString({",
+					"            ignoreDisabled: true",
+					"        })",
+					"    ).filter(el => !!el.key);",
+					"    ",
+					"    url_query_string_object_array.forEach(item => {",
+					"        url_query_string_object[item.key] = encodeURIComponent(item.value);",
+					"    });",
+					"    ",
+					"    // merge query parameter",
+					"    Object.assign(oauth_parameter_string_object, url_query_string_object);",
+					"    ",
+					"    // sort object by key",
+					"    const oauth_parameter_string_object_ordered = {};",
+					"    Object.keys(oauth_parameter_string_object).sort().forEach(function(key) {",
+					"        oauth_parameter_string_object_ordered[key] = oauth_parameter_string_object[key];",
+					"    });",
+					"    ",
+					"    // generate parameter string",
+					"    const oauth_parameter_string = toArray(oauth_parameter_string_object_ordered).join('&');",
+					"    ",
+					"    // replace dynamic variables",
+					"    let base_host = pm.request.url.getOAuth1BaseUrl();",
+					"    let regexp = /{{(.*?)}}/g;",
+					"    let result = null;",
+					"    while (result = regexp.exec(base_host)) {",
+					"        let value = env_variables[result[1]];",
+					"        base_host = base_host.replace(new RegExp(`{{${result[1]}}}`, 'g'), value);",
+					"    }",
+					"    ",
+					"    // generate base string",
+					"    const oauth_base_string = `${pm.request.method}&${encodeURIComponent(base_host)}&${encodeURIComponent(oauth_parameter_string)}`;",
+					"    ",
+					"    // generate signature",
+					"    const oauth_signature = CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA1(oauth_base_string, oauth_signing_key));",
+					"    ",
+					"    oauth_authorization_header_object.oauth_signature = encodeURIComponent(oauth_signature);",
+					"    ",
+					"    // generate Authorization header string",
+					"    const oauth_authorization_header = toArray(oauth_authorization_header_object).join(', ');",
+					"    ",
+					"    // generate Authorization header",
+					"    pm.request.headers.add({",
+					"        key: 'Authorization',",
+					"        value: `OAuth ${oauth_authorization_header}`",
+					"    });",
+					"    ",
+					"    // Escape URI parameters using encodeURIComponent => RFC3986",
+					"    if (Object.keys(url_query_string_object).length !== 0) {",
+					"        // generate query parameter string",
+					"        const request_parameter_string = toArray(url_query_string_object).join('&');",
+					"    ",
+					"        pm.request.url = `${pm.request.url.getOAuth1BaseUrl()}?${request_parameter_string}`;",
+					"    }",
+					"}",
+					"",
+					"if (typeof pm.request.auth !== 'undefined' && pm.request.auth.type === 'oauth1') {",
+					"    prepareOAuthSignature();",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "consumer_key",
+			"value": ""
+		},
+		{
+			"key": "consumer_secret",
+			"value": ""
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "token_secret",
+			"value": ""
+		},
+		{
+			"key": "bearer_token",
+			"value": ""
+		}
+	]
+}
