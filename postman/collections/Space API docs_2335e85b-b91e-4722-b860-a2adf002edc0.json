@@ -1,0 +1,310 @@
+{
+	"info": {
+		"_postman_id": "f1f0f65c-d74a-40b8-af74-630d9f10679b",
+		"name": "Space API docs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "launch",
+			"item": [
+				{
+					"name": "Get a list of all launches again and again and again!!",
+					"id": "c9cdd527-c9bf-4ead-807a-6f23364c5a6b",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/launch?id=54849125",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"launch"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "54849125",
+									"description": "(Required) ID of the launch"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "c722f546-cc18-494c-9316-56018ee83cbd",
+							"name": "Sample response: Details about a launch by ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "Added as a part of security scheme: basic",
+										"key": "Authorization",
+										"value": "Basic <credentials>"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/launch?id=54849125",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"launch"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "54849125"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"disabled": false,
+									"description": "A link to the next page of responses",
+									"key": "x-next",
+									"value": "officia amet"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"responseTime": null,
+							"body": "{\n  \"id\": 40331387,\n  \"name\": \"si\",\n  \"status\": \"PLANNED\",\n  \"launchTimestamp\": \"1979-03-10T19:46:53.180Z\",\n  \"launchLocation\": \"nulla Excepteur occaecat in\",\n  \"description\": \"nisi ex nostrud\",\n  \"tag\": \"pariatur nulla elit minim\"\n}"
+						},
+						{
+							"id": "5591719f-e844-47ec-beee-47de0399b323",
+							"name": "Unexpected error",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "Added as a part of security scheme: basic",
+										"key": "Authorization",
+										"value": "Basic <credentials>"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/launch?id=54849125",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"launch"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "54849125"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"responseTime": null,
+							"body": "{\n  \"code\": 87148858,\n  \"message\": \"reprehende\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update launch information",
+					"id": "aa5b1f6e-009e-4884-88dd-d0df165a747a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 40331387,\n  \"name\": \"si\",\n  \"status\": \"PLANNED\",\n  \"launchTimestamp\": \"1979-03-10T19:46:53.180Z\",\n  \"launchLocation\": \"nulla Excepteur occaecat in\",\n  \"description\": \"nisi ex nostrud\",\n  \"tag\": \"pariatur nulla elit minim\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/launch/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"launch",
+								":id"
+							],
+							"variable": [
+								{
+									"id": "0be3a6fa-c2e1-4f96-b13f-6895da6811e0",
+									"key": "id",
+									"value": "54849125",
+									"description": "(Required) ID of the launch"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "64d37b93-2f87-48fe-835f-01eeb00b729e",
+							"name": "Sample response: The updated launch",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"description": "Added as a part of security scheme: basic",
+										"key": "Authorization",
+										"value": "Basic <credentials>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": 40331387,\n  \"name\": \"si\",\n  \"status\": \"PLANNED\",\n  \"launchTimestamp\": \"1979-03-10T19:46:53.180Z\",\n  \"launchLocation\": \"nulla Excepteur occaecat in\",\n  \"description\": \"nisi ex nostrud\",\n  \"tag\": \"pariatur nulla elit minim\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/launch/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"launch",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "54849125",
+											"description": "(Required) ID of the launch"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"responseTime": null,
+							"body": "{\n  \"id\": 40331387,\n  \"name\": \"si\",\n  \"status\": \"PLANNED\",\n  \"launchTimestamp\": \"1979-03-10T19:46:53.180Z\",\n  \"launchLocation\": \"nulla Excepteur occaecat in\",\n  \"description\": \"nisi ex nostrud\",\n  \"tag\": \"pariatur nulla elit minim\"\n}"
+						},
+						{
+							"id": "afe30316-9cba-4739-bf74-2b2bf8501dbe",
+							"name": "Unexpected error",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"description": "Added as a part of security scheme: basic",
+										"key": "Authorization",
+										"value": "Basic <credentials>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": 40331387,\n  \"name\": \"si\",\n  \"status\": \"PLANNED\",\n  \"launchTimestamp\": \"1979-03-10T19:46:53.180Z\",\n  \"launchLocation\": \"nulla Excepteur occaecat in\",\n  \"description\": \"nisi ex nostrud\",\n  \"tag\": \"pariatur nulla elit minim\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/launch/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"launch",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "54849125",
+											"description": "(Required) ID of the launch"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"responseTime": null,
+							"body": "{\n  \"code\": 87148858,\n  \"message\": \"reprehende\"\n}"
+						}
+					]
+				}
+			],
+			"id": "1d9d9a47-696a-4028-bbe6-ab86dbb78011"
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "username",
+				"value": "<Basic Auth Username>",
+				"type": "string"
+			},
+			{
+				"key": "password",
+				"value": "<Basic Auth Password>",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"id": "7fadfc4b-6729-4272-972e-b8f84d32e890",
+			"key": "baseUrl",
+			"value": "localhost:3001",
+			"type": "string"
+		}
+	]
+}
