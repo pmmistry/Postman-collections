@@ -10,7 +10,7 @@ image: String
 albums(limit: Int = 10): [Album]
 }
 type Album {
-name: String
+name: Strings
 id: ID
 image: String
 tracks: [Track]
